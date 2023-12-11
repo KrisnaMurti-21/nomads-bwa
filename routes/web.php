@@ -24,12 +24,29 @@ use Illuminate\Support\Facades\Auth;
 
 Route::get('/', [HomeController::class, 'index'])
     ->name('home');
-Route::get('/detail', [DetailController::class, 'index'])
+
+Route::get('/detail/{slug}', [DetailController::class, 'index'])
     ->name('detail');
-Route::get('/checkout', [CheckoutController::class, 'index'])
-    ->name('checkout');
-Route::get('/checkout/success', [CheckoutController::class, 'success'])
-    ->name('checkout-success');
+
+Route::post('/checkout/{id}', [CheckoutController::class, 'process'])
+    ->name('checkout_process')
+    ->middleware(['auth', 'verified']);
+
+Route::get('/checkout/{id}', [CheckoutController::class, 'index'])
+    ->name('checkout')
+    ->middleware(['auth', 'verified']);
+
+Route::post('/checkout/create/{detail_id}', [CheckoutController::class, 'create'])
+    ->name('checkout-create')
+    ->middleware(['auth', 'verified']);
+
+Route::get('/checkout/remove/{detail_id}', [CheckoutController::class, 'remove'])
+    ->name('checkout-remove')
+    ->middleware(['auth', 'verified']);
+    
+Route::get('/checkout/confirm/{id}', [CheckoutController::class, 'success'])
+    ->name('checkout-success')
+    ->middleware(['auth', 'verified']);
 
 Route::prefix('admin')
     ->middleware(['auth', 'admin'])
