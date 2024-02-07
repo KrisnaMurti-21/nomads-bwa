@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TransactionSuccess;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\TravelPackage;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class CheckoutController extends Controller
 {
@@ -20,9 +22,12 @@ class CheckoutController extends Controller
     public function process(Request $request, $id)
     {
         $travel_package = TravelPackage::findOrFail($id);
+
+        $user_id = Auth::user()->id;
+        $username = Auth::user()->username;
         $transaction = Transaction::create([
             'travel_packages_id' => $id,
-            'users_id' => Auth::user()->id,
+            'users_id' => $user_id,
             'additional_visa' => 0,
             'transaction_total' => $travel_package->price,
             'transaction_status' => 'IN_CART'
@@ -30,7 +35,7 @@ class CheckoutController extends Controller
 
         TransactionDetail::create([
             'transactions_id' => $transaction->id,
-            'username' => Auth::user()->username,
+            'username' => $username,
             'nationality' => 'ID',
             'is_visa' => false,
             'doe_passport' => Carbon::now()->addYears(5),
@@ -38,14 +43,13 @@ class CheckoutController extends Controller
 
         return redirect()->route('checkout', $transaction->id);
     }
-    
+
     public function remove(Request $request, $detail_id)
     {
         $item = TransactionDetail::findOrFail($detail_id);
         $transaction = Transaction::with(['details', 'travel_package'])->findOrFail($item->transactions_id);
 
-        if($item->is_visa)
-        {
+        if ($item->is_visa) {
             $transaction->transaction_total -= 190;
             $transaction->additional_visa -= 190;
         }
@@ -56,7 +60,6 @@ class CheckoutController extends Controller
         $item->delete();
 
         return redirect()->route('checkout', $item->transactions_id);
-
     }
 
     public function create(Request $request, $id)
@@ -75,8 +78,7 @@ class CheckoutController extends Controller
 
         $transaction = Transaction::with(['travel_package'])->find($id);
 
-        if($request->is_visa)
-        {
+        if ($request->is_visa) {
             $transaction->transaction_total += 190;
             $transaction->additional_visa += 190;
         }
@@ -90,10 +92,15 @@ class CheckoutController extends Controller
 
     public function success(Request $request, $id)
     {
-        $transaction = Transaction::findOrFail($id);
+        $transaction = Transaction::with(['details', 'travel_package.galleries', 'user'])->findOrFail($id);
         $transaction->transaction_status = 'PENDING';
 
         $transaction->save();
+        // return $transaction;
+        //Kirim email ke user eticketnya
+        Mail::to($transaction->user)->send(
+            new TransactionSuccess($transaction)
+        );
         return view('pages.success');
     }
 }

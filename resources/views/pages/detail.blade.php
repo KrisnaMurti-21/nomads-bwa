@@ -49,7 +49,7 @@
                       </div>
                       <h2>Tentang Wisata</h2>
                       <p>
-                        {{!! $item->about !!}}
+                        {{ $item->about }}
                       </p>
                       <div class="features row pt-3">
                         <div class="col-md-4">
@@ -94,7 +94,7 @@
               <div class="card card-details card-right">
                 <h2>Members are going</h2>
                 <div class="members my-2">
-                  <img src="frontend/images/members.png" alt="" class="w-75" />
+                  <img src="/frontend/images/members.png" alt="" class="w-75" />
                 </div>
                 <hr />
                 <h2>Trip Informations</h2>
