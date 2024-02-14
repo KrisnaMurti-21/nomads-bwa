@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\TravelPackageController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DetailController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MidtransController;
 use App\Models\TravelPackage;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,7 +44,7 @@ Route::post('/checkout/create/{detail_id}', [CheckoutController::class, 'create'
 Route::get('/checkout/remove/{detail_id}', [CheckoutController::class, 'remove'])
     ->name('checkout-remove')
     ->middleware(['auth', 'verified']);
-    
+
 Route::get('/checkout/confirm/{id}', [CheckoutController::class, 'success'])
     ->name('checkout-success')
     ->middleware(['auth', 'verified']);
@@ -62,3 +63,9 @@ Route::prefix('admin')
 Auth::routes(['verify' => true]);
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+//Midtrans
+Route::post('/midtrans/callback', [MidtransController::class, 'notificationHandler']);
+Route::get('/midtrans/finish', [MidtransController::class, 'finishRedirect']);
+Route::get('/midtrans/unfinish', [MidtransController::class, 'unfinishRedirect']);
+Route::get('/midtrans/error', [MidtransController::class, 'errorRedirect']);
